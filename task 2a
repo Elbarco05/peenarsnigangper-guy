@@ -1,1 +1,39 @@
-# Task 2a
+# task 2a 
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import erf
+from matplotlib.animation import FuncAnimation
+
+def heateq_sol(t, deltax, deltay):
+    # def init cond
+    u0 = 100
+    r0x = 17.5
+    r0y = 37.5
+    rlim = 2.5
+    alpha = 2
+    
+    r = np.sqrt((deltax - r0x)**2+(deltay - r0y)**2)
+    return 0.5*u0*(erf((rlim-r)/np.sqrt(4*alpha*t))-erf((-rlim-r)/np.sqrt(4*alpha*t)))
+
+def update(frame):
+    # silly loading thing
+    percent = frame
+    print('loading... %i percent done' %percent)
+    # actual code
+    plt.clf()
+    plt.pcolormesh(X, Y, heateq_sol(t + frame/10, X, Y), cmap = 'jet', vmin = 0, vmax = 100)
+    plt.colorbar(label = 'Temperature (k)')
+    plt.title('Temperature at time t = %i s' %frame)
+    plt.xlabel('x')
+    plt.ylabel('y')
+
+t = 0
+xvals = np.linspace(0, 50, 500)
+yvals = np.linspace(0, 50, 500)
+X, Y = np.meshgrid(xvals, yvals)        # putting our x- and yvals in a matrix
+
+fig = plt.figure()
+
+
+anim = FuncAnimation(fig, update, frames=100, interval=1)  
+anim.save('2Danimation.gif', fps = 10)
