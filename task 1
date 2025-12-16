@@ -1,1 +1,31 @@
 # task 1
+
+import numpy as np
+from scipy.special import erf
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+
+# A
+
+x = np.linspace(-3, 3, 100)
+t = 0
+
+def u(x,t):
+    a = 1
+    y_lim = 1/2
+    er_1 = erf((y_lim - x)/(np.sqrt(4*a*t)))
+    er_2 = erf((-y_lim - x)/(np.sqrt(4*a*t)))    
+    return 0.5*(er_1 - er_2)
+
+def update(frame):
+    line.set_ydata(u(x, t + frame/20))
+    return line,
+
+fig, ax = plt.subplots()
+line, = ax.plot(x, u(x,t))
+
+global ani
+ani = animation.FuncAnimation(fig, update, frames=500, interval=1)
+ani.save('mrgay.gif')
+plt.show()
