@@ -6,10 +6,10 @@ from matplotlib.animation import FuncAnimation
 
 def heateq_sol(t, deltax, deltay):
     # def init cond
-    u0 = 0
-    r0x = 0
-    r0y = 0
-    rlim = 0
+    u0 = 10000
+    r0x = 5e6
+    r0y = 4e6
+    rlim = 1e5
     alpha = 2
     
     r = np.sqrt((deltax - r0x)**2+(deltay - r0y)**2)
@@ -21,7 +21,7 @@ def update(frame):
     # actual code
     plt.clf()
     
-    plt.pcolormesh(X, Y, (wideT + heateq_sol(t + frame/25, X, Y)))      
+    plt.pcolormesh(X, Y, (wideT + heateq_sol(t + frame, X, Y)))      
     
     # axes and setup
     plt.colorbar(label = 'Temperature (Celsius)')
@@ -32,40 +32,32 @@ def update(frame):
 
 # arrays with earth layer data - first element is inner core, last is crust
 T = np.array([5850, 4200, 2400, 700])        # temp in kelvin       , 290
-alphas = np.array([1e-5, 1e-6, 1e-7, 1e-8])     #  , 1e-9    grab actual alpha vals
-layers = np.array([0, 1216000, 3486000, 6371000, 6421000])       # starting points (in distance) for the layers
+alphas = np.array([1e-5, 1e-6, 1e-7, 1e-8])     #  , 1e-9    grab actual alpha vals!!
+layers = np.array([0, 1216000, 3486000, 6371000, 6421000])       # starting points (in distance) for the layers - needs to be 1 more than T and alpha, which is why i removed vals from them
 
 t = 0
 xvals = np.linspace(0, 7e6, 500)
 yvals = np.linspace(0, 7e6, 500)
 X, Y = np.meshgrid(xvals, yvals)        # putting our x- and yvals in a matrix
 
-R = np.sqrt(X**2 + Y**2)         # radius of earth, circle equation
+R = np.sqrt(X**2 + Y**2)         # radius of plot, circle equation - lets us segment the plot in quarter circles
 
 # making the layers of the earth
-wideT = np.zeros((len(T), len(T)))
-widealpha = np.zeros((len(alphas), len(alphas)))
+wideT = np.zeros((len(xvals), len(yvals)))
+widealpha = np.zeros((len(xvals), len(yvals)))
 
-for i in range(len(T)):
-    wideT[i] = T[(R >= layers[i] and R < layers[i+1])]      # basically setting T for every pixel of layer i, bc then we can add this to the vals from heateq to get the temp of each pixel 
-    widealpha[i] = alphas[(R >= layers[i]) and (R < layers[i+1])]     # same thing but for alphas
+for i in range(len(layers)-1):
+    wideT[(R >= layers[i]) & (R < layers[i+1])] = T[i]     # basically setting T for every pixel of layer i, bc then we can add this to the vals from heateq to get the temp of each pixel 
+    widealpha[(R >= layers[i]) & (R < layers[i+1])] = alphas[i]     # same thing but for alphas
 
 fig = plt.figure()
 fig.set_figwidth(6.2)
 fig.set_figheight(5)
 
 
-anim = FuncAnimation(fig, update, frames=10, interval=1)  
+anim = FuncAnimation(fig, update, frames=100, interval=1)  
 anim.save('cometimpact.gif', fps = 10)
 
-
-
-
-# göra np array för r, sen lite algoritmer
-
-# crust - 50 km
-# mantle - 2885 km
-# outer core - 2270 km
-# inner core - 1216 km
-
-# tot - 6 421 km
+# TODO: fixa colormapen så den är snygg, för det är den inte nu
+# TODO: få in alpha på nåt sätt? just nu är den definierad som 2 i def update(), men vi har ju gjort en array för den i for-loopen...........
+# TODO: fixa tiden - just nu kollar vi på typ 2 sekunder och det skulle ju vara typ miljoner år så. um. ya.
