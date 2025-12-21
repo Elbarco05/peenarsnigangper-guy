@@ -4,13 +4,12 @@ import matplotlib.pyplot as plt
 from scipy.special import erf
 from matplotlib.animation import FuncAnimation
 
-def heateq_sol(t, deltax, deltay):
+def heateq_sol(t, deltax, deltay, alpha):
     # def init cond
     u0 = 10000
-    r0x = 5e6
-    r0y = 4e6
-    rlim = 1e5
-    alpha = 2
+    r0x = 4.5e6
+    r0y = 4.5e6
+    rlim = 3e5
     
     r = np.sqrt((deltax - r0x)**2+(deltay - r0y)**2)
     return 0.5*u0*(erf((rlim-r)/np.sqrt(4*alpha*t))-erf((-rlim-r)/np.sqrt(4*alpha*t)))
@@ -20,12 +19,12 @@ def update(frame):
     print('loading... %i frames done' %frame)
     # actual code
     plt.clf()
-    
-    plt.pcolormesh(X, Y, (wideT + heateq_sol(t + frame, X, Y)))      
+    # plotting
+    plt.pcolormesh(X, Y, (wideT + heateq_sol(t + frame*1e6, X, Y, widealpha)), cmap = 'jet', vmin = 0, vmax = 10000)      
     
     # axes and setup
     plt.colorbar(label = 'Temperature (Celsius)')
-    plt.title(f'Temperature at time t = {frame/25} s')
+    plt.title(f'Temperature at time t = {frame} yrs')       
     plt.xlabel('x')
     plt.ylabel('y')
 
@@ -54,10 +53,11 @@ fig = plt.figure()
 fig.set_figwidth(6.2)
 fig.set_figheight(5)
 
-
-anim = FuncAnimation(fig, update, frames=100, interval=1)  
+anim = FuncAnimation(fig, update, frames=100, interval=0.01)  
 anim.save('cometimpact.gif', fps = 10)
 
-# TODO: fixa colormapen så den är snygg, för det är den inte nu
-# TODO: få in alpha på nåt sätt? just nu är den definierad som 2 i def update(), men vi har ju gjort en array för den i for-loopen...........
+
 # TODO: fixa tiden - just nu kollar vi på typ 2 sekunder och det skulle ju vara typ miljoner år så. um. ya.
+            # ok så förmodligen behöver vi fler frames, men då kommer det ta sjukt lång tid att skapa gifen
+            # eller???????????? idk what is happening, men den vill inte diffusa iaf
+            # titeln (där det står vilken tid det är) är också fel men idk kan lowk inte fixa den innan detta e löst
