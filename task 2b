@@ -29,7 +29,7 @@ X, Y = np.meshgrid(xvals, yvals)        # putting our x- and yvals in a matrix
 R = np.sqrt(X**2 + Y**2)
 
 Alphas = np.ones((500, 500))   # defining our grid of alphas
-Temp = np.ones((500, 500))
+Temp = np.ones((500, 500))     # same for temperature grid
 Alphas[True] = 1e50             # all alphas that aren't the earth are teeny tiny
 
 for i in range(len(Layers)):        # loop for (alpha values of) all the layers of the earth, starting from the outside and in. 
@@ -46,13 +46,14 @@ def update(frame):
     
     # axes and setup
     plt.colorbar(label = 'Temperature (Celsius)')
-    plt.title(f'Temperature at time t = {frame} yrs')       
+    plt.title(f'Temperature at time t = {frame} e15 seconds')       
     plt.xlabel('x')
     plt.ylabel('y')
 
 
 fig = plt.figure()
-
+fig.set_figwidth(6.2)
+fig.set_figheight(5)
 
 anim = FuncAnimation(fig, update, frames=100, interval=1)  
 anim.save('3Danigaytion.gif', fps = 12)
