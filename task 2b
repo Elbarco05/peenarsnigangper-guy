@@ -1,51 +1,58 @@
-# Task 2b
 import numpy as np
 from scipy.special import erf
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-Alphas = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
-Temps = [5850, 4200, 2400, 700, 290]
+A = [5e-6, 5e-7, 5e-8, 5e-9, 5e-10]
+Tea = [700, 1400, 2500, 4200, 5850]
+#Layers = [6521e3, 6421e3, 6371e3, 3486e3, 1216e3]
+Layers = [6421e3, 6371e3, 5671e3, 3486e3, 1216e3]
 
-Layers = [0, 1216, 3486, 6371, 6421, 6521]
+# heat equation
 
-
-
-for i in Layers:
-    a[Layers[i] <= R <= Layers[i+1]] = Alphas[i] 
-
-
-
-def heateq_sol(t, deltax, deltay):
+def heateq_sol(t, deltax, deltay, alpha):
     # def init cond
-    u0 = 100
-    r0x = 0
-    r0y = 0
-    rlim = 2.5
-    alpha = 2
+    u0 = 10000
+    r0x = 4.5e6
+    r0y = 4.5e6
+    rlim = 190e3
     
     r = np.sqrt((deltax - r0x)**2+(deltay - r0y)**2)
     return 0.5*u0*(erf((rlim-r)/np.sqrt(4*alpha*t))-erf((-rlim-r)/np.sqrt(4*alpha*t)))
 
+
+t = 0
+xvals = np.linspace(0, 7e6, 500)
+yvals = np.linspace(0, 7e6, 500)
+X, Y = np.meshgrid(xvals, yvals)        # putting our x- and yvals in a matrix
+
+R = np.sqrt(X**2 + Y**2)
+
+Alphas = np.ones((500, 500))   # defining our grid of alphas
+Temp = np.ones((500, 500))
+Alphas[True] = 1e50             # all alphas that aren't the earth are teeny tiny
+
+for i in range(len(Layers)):        # loop for (alpha values of) all the layers of the earth, starting from the outside and in. 
+    Alphas[R <= Layers[i]] = A[i]   # they overlap but the inner layers overwrite the previous ones
+    Temp[R <= Layers[i]] = Tea[i]
+
 def update(frame):
     # silly loading thing
-    percent = frame
-    print('loading... %i percent done' %percent)
+    print('loading... %i frames done' %frame)
     # actual code
     plt.clf()
-    plt.imshow(heateq_sol(t + frame/10, X, Y), cmap = 'jet', extent=(0, 50, 0, 50), vmin = 0, vmax = 100)
-    plt.colorbar(label = 'Temperature (k)')
-    plt.title('Temperature at time t = %i s' %frame)
+    # plotting
+    plt.pcolormesh(X, Y, (Temp + heateq_sol(t + frame*1e15, X, Y, Alphas)), cmap = 'jet', vmin = 0, vmax = 10000)      
+    
+    # axes and setup
+    plt.colorbar(label = 'Temperature (Celsius)')
+    plt.title(f'Temperature at time t = {frame} yrs')       
     plt.xlabel('x')
     plt.ylabel('y')
 
-t = 0
-xvals = np.linspace(0, 50, 500)
-yvals = np.linspace(0, 50, 500)
-X, Y = np.meshgrid(xvals, yvals)        # putting our x- and yvals in a matrix
 
 fig = plt.figure()
 
 
-anim = FuncAnimation(fig, update, frames=10, interval=1)  
-anim.save('2Danimation.gif', fps = 10)
+anim = FuncAnimation(fig, update, frames=100, interval=1)  
+anim.save('3Danigaytion.gif', fps = 12)
