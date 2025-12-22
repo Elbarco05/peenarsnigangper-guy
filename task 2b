@@ -1,1 +1,63 @@
 # Task 2b
+
+import numpy as np
+from scipy.special import erf
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+A = [5e-6, 5e-7, 5e-8, 5e-9, 5e-10]
+Tea = [700, 1400, 2500, 4200, 5850]
+#Layers = [6521e3, 6421e3, 6371e3, 3486e3, 1216e3]
+Layers = [6421e3, 6371e3, 5671e3, 3486e3, 1216e3]
+
+# heat equation
+
+def heateq_sol(t, deltax, deltay, alpha):
+    # def init cond
+    u0 = 10000
+    r0x = 4.5e6
+    r0y = 4.5e6
+    rlim = 190e3
+    C = 5.551171875e-17  # cooling constant
+    
+    
+    r = np.sqrt((deltax - r0x)**2+(deltay - r0y)**2)
+    return 0.5*u0*(erf((rlim-r)/np.sqrt(4*alpha*t))-erf((-rlim-r)/np.sqrt(4*alpha*t)))*(1-C)**t   # added exponentially decaying function
+
+
+t = 0
+xvals = np.linspace(0, 7e6, 500)
+yvals = np.linspace(0, 7e6, 500)
+X, Y = np.meshgrid(xvals, yvals)        # putting our x- and yvals in a matrix
+
+R = np.sqrt(X**2 + Y**2)
+
+Alphas = np.ones((500, 500))   # defining our grid of alphas
+Temp = np.ones((500, 500))
+Alphas[True] = 1e50             # all alphas that aren't the earth are teeny tiny
+
+for i in range(len(Layers)):        # loop for (alpha values of) all the layers of the earth, starting from the outside and in. 
+    Alphas[R <= Layers[i]] = A[i]   # they overlap but the inner layers overwrite the previous ones
+    Temp[R <= Layers[i]] = Tea[i]
+
+def update(frame):
+    # silly loading thing
+    print('loading... %i frames done' %frame)
+    # actual code
+    plt.clf()
+    # plotting
+    plt.pcolormesh(X, Y, (Temp + heateq_sol(t + frame*1e15, X, Y, Alphas)), cmap = 'jet', vmin = 0, vmax = 10000)      
+    
+    # axes and setup
+    plt.colorbar(label = 'Temperature (Celsius)')
+    plt.title(f'Temperature at time t = {frame} e15 seconds')       
+    plt.xlabel('x')
+    plt.ylabel('y')
+
+
+fig = plt.figure()
+fig.set_figwidth(6.2)
+fig.set_figheight(5)
+
+anim = FuncAnimation(fig, update, frames=100, interval=1)  
+anim.save('3Danigaytioncool.gif', fps = 12)
